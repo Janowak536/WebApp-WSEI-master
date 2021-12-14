@@ -13,6 +13,7 @@ namespace WebApplication1.DAL.Models
         public string Nazwisko { get; set; }
         public string Nazwisko2 { get; set; }
 
+
         public Student(string numerIndeksu,string imie,string nazwisko)
         {
             NumerIndeksu = numerIndeksu;

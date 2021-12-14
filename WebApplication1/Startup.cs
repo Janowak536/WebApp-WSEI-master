@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 using WebApplication1.Configuration;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.DAL.Contexts;
+using WebApplication1.Interfaces;
+using WebApplication1.Services;
 
 namespace WebApplication1
 {
@@ -31,6 +33,8 @@ namespace WebApplication1
             services.AddSwaggerGen(x => 
             { x.SwaggerDoc("v1", new OpenApiInfo { Title = "WebApp", Version = "v1" });
             });
+
+            services.AddScoped<IObslugaBazyDanych, ObslugaBazyDanych>();
 
             services.AddDbContext<DziekanatContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DziekanatDatabaseConnection")));
 

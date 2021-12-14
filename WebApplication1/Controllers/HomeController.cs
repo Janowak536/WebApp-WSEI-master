@@ -8,18 +8,19 @@ using System.Threading.Tasks;
 using WebApplication1.DAL.Models;
 using WebApplication1.DAL.Contexts;
 using WebApplication1.Models;
-
+using WebApplication1.Services;
+using WebApplication1.Interfaces;
 
 namespace WebApplication1.Controllers
 {
     public class HomeController : Controller
     {
-        
-        private readonly DziekanatContext bazaDanychDziekanatu;
 
-        public HomeController( DziekanatContext bazaDanychDziekanatu)
+        private readonly IObslugaBazyDanych obslugaBazyDanych;
+
+        public HomeController(IObslugaBazyDanych obslugaBazyDanych)
         {
-            this.bazaDanychDziekanatu = bazaDanychDziekanatu;
+            this.obslugaBazyDanych = obslugaBazyDanych;
         }
 
         public IActionResult Index()
@@ -38,96 +39,73 @@ namespace WebApplication1.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
-     
-
         [HttpGet]
+        [Route("PlanZajec")]
         public IActionResult PlanZajec()
         {
-            //List<Zajecia> planZajec = bazaDanychDziekanatu.Zajecia.ToList();
-            List<Zajecia> planZajec = bazaDanychDziekanatu.Zajecia.ToList();
-            //List<Zajecia> planZajec2 = (List<Zajecia>)(from word in bazaDanychDziekanatu.Zajecia where word.NazwaZajec.StartsWith("Prog") select word).ToList();
-            //List<Zajecia> planZajec3 = (List<Zajecia>)(from word in bazaDanychDziekanatu.Zajecia where word.NazwaZajec.Contains("J") select word).ToList();
-            //List<Zajecia> planZajec4 = (List<Zajecia>)(from word in bazaDanychDziekanatu.Zajecia where !word.NazwaZajec.Contains(" ") select word).ToList();
-            //List<Zajecia> planZajec5 = (List<Zajecia>)(from word in bazaDanychDziekanatu.Zajecia select new Zajecia() {Id = word.Id, NazwaZajec = word.NazwaZajec.Substring(0, 3), TerminZajec= word.TerminZajec}).ToList();
-
-            return View(planZajec);
+            return Ok(obslugaBazyDanych.PobierzPlanZajec());
         }
-
 
         [HttpGet]
+        [Route("Student")]
         public IActionResult Student()
         {
-            List<Student> students = bazaDanychDziekanatu.Student.ToList();
-            return View(students);
+            return Ok(obslugaBazyDanych.PobierzListeStudentów());
         }
+
         [HttpPost]
         [Route("DodajStudenta/{numerIndeksu}/{imie}/{nazwisko}")]
-        public IActionResult DodajStudenta(string numerIndeksu, string imie,string nazwisko)
+        public IActionResult DodajStudenta(string numerIndeksu, string imie, string nazwisko)
         {
-            try
-            {
-                Student student = new Student(numerIndeksu, imie, nazwisko);
-                bazaDanychDziekanatu.Student.Add(student);
-                bazaDanychDziekanatu.SaveChanges();
-                return Ok(new { komunikat = $"Dodano studenta {imie} {nazwisko} o numerze indueksu: {numerIndeksu}" });
-            }
-            catch (Exception ex)
-            {
+            Student student = obslugaBazyDanych.DodajStudentaDoListy(numerIndeksu,imie,nazwisko);
 
-                return BadRequest(new { komunikat = $"Nie udało się dodać studenta {imie} do bazy: {ex.Message}" });
-            }
+            if (numerIndeksu == null)
+                return BadRequest(new { komunikat = $"Nie udało się dodać studenta {numerIndeksu}" });
+
+            return Ok(new { komunikat = $"Dodano studenta {student.Imie} do bazy." });
         }
+
         [HttpPost]
         [Route("UsunStudenta/{numerIndeksu}")]
         public IActionResult UsunStudenta(string numerIndeksu)
         {
-            try
+            Student student = obslugaBazyDanych.UsunStudentaZPlanu(numerIndeksu);
+
+            if (student.NumerIndeksu != null)
             {
-                Student student = bazaDanychDziekanatu.Student.Where(x=>x.NumerIndeksu==numerIndeksu).FirstOrDefault();
-                bazaDanychDziekanatu.Student.Remove(student);
-                bazaDanychDziekanatu.SaveChanges();
-                return Ok(new { komunikat = $"Usunięto Studenta {student.Imie} o numerze indeksu {student.NumerIndeksu} z bazy." });
+                return Ok(new { komunikat = $"Usunięto studenta {student.Imie} {student.Nazwisko} z bazy." });
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new { komunikat = $"Nie udało się usunąć studenta {numerIndeksu} z bazy: {ex.Message}" });
-            }
+            return BadRequest(new { komunikat = $"Brak studenta dla id {numerIndeksu}" });
         }
 
         [HttpPost]
         [Route("DodajZajeciaDoBazy/{podanaNazwa}/{podanyTermin}")]
         public IActionResult DodajDoPlanu(string podanaNazwa, string podanyTermin)
         {
-            try
-            {
-                DateTime data = Convert.ToDateTime(podanyTermin);
-                if (data.Date <= DateTime.Now.Date)
-                    return BadRequest(new { komunikat = $"Nie można dodać zajęć dla minionej daty" });
-                Zajecia zajecia = new Zajecia(podanaNazwa, data);
-                bazaDanychDziekanatu.Zajecia.Add(zajecia);
-                bazaDanychDziekanatu.SaveChanges();
-                return Ok(new { komunikat = $"Dodano zajęcia {podanaNazwa}, w terminie {data}, do bazy." });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { komunikat = $"Nie udało się dodać zajęć {podanaNazwa} do bazy: {ex.Message}" });
-            }
+
+            Zajecia zajecia = obslugaBazyDanych.DodajZajeciaDoPlanu(podanaNazwa, podanyTermin);
+
+            if (zajecia == null)
+                return BadRequest(new { komunikat = $"Nie udało się dodać zajęć {podanaNazwa}" });
+
+            return Ok(new { komunikat = $"Dodano zajęcia {zajecia.NazwaZajec} do bazy." });
+
+
+
         }
+
         [HttpPost]
         [Route("UsunZajeciaZBazy/{idZajec}")]
         public IActionResult UsunZPlanu(int idZajec)
         {
-            try
+            Zajecia zajecia = obslugaBazyDanych.UsunZajeciaZPlanu(idZajec);
+
+            if (zajecia.NazwaZajec != null)
             {
-                Zajecia zajecia = bazaDanychDziekanatu.Zajecia.Where(x => x.Id == idZajec).FirstOrDefault();
-                bazaDanychDziekanatu.Zajecia.Remove(zajecia);
-                bazaDanychDziekanatu.SaveChanges();
                 return Ok(new { komunikat = $"Usunięto zajęcia {zajecia.NazwaZajec} o Id {zajecia.Id} z bazy." });
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new { komunikat = $"Brak zajęć dla id {idZajec}: {ex.Message}" });
-            }
+            return BadRequest(new { komunikat = $"Brak zajęć dla id {idZajec}" });
+
         }
     }
 }

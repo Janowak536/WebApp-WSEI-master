@@ -1,0 +1,32 @@
+﻿@page "/zajeciakomponent"
+
+<tr class="@stylWgLiczbyUczestnikow">
+    <td>@zajecia.Data.ToString("dd-MM-yyyy")</td>
+    <td>|@zajecia.Nazwa</td>
+    <td>|@zajecia.Uczestnicy/@zajecia.UczestnicyMax</td>
+    <td><button @onclick="ZapiszSie">+</button></td>|<td><button @onclick="WypiszSie">-</button></td>
+</tr>
+
+@code {
+    [Parameter]
+    public Zajecia zajecia { get; set; }
+
+    private string stylWgLiczbyUczestnikow =>
+        zajecia.Uczestnicy > 0 ?
+        zajecia.Uczestnicy >= zajecia.UczestnicyMax ? "przepelnioneZajecia" : "niepusteZajecia" : "";
+
+    private void ZapiszSie()
+    {
+        if (zajecia.Uczestnicy< zajecia.UczestnicyMax)
+        {
+            zajecia.Uczestnicy++;
+        }
+    }
+    private void WypiszSie()
+    {
+        if (zajecia.Uczestnicy > 0)
+        {
+            zajecia.Uczestnicy--;
+        }
+    }
+}

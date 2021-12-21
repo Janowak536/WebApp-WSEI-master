@@ -1,0 +1,10 @@
+﻿@page "/todocomponent"
+
+<li>
+    <input type="checkbox" @bind="todoItem.Stan" />
+</li>
+
+@code {
+    [Parameter]
+    public ToDoItem todoItem { get; set; }
+}

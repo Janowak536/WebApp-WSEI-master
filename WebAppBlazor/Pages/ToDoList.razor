@@ -1,0 +1,30 @@
+﻿@page "/todolist"
+
+<h3>TodoList @todoItems.Count(x=>x.Stan == true)/@todoItems.Count()</h3>
+
+<ul>
+    @foreach(var item in todoItems)
+    {
+    <TodoComponent todoItem="item"/>
+    }
+</ul>
+<button @onclick="ZaznaczWszystko">Zaznacz wszystko</button>
+<button @onclick="OdznaczWszystko">Odznacz wszystko</button>
+@code {
+    private List<ToDoItem>
+    todoItems=new()
+    {
+    new ToDoItem() { Nazwa = "Task 1"},
+    new ToDoItem() { Nazwa = "Task 2"},
+    new ToDoItem() { Nazwa = "Task 3"},
+    new ToDoItem() { Nazwa = "Task 4"}
+    };
+    private void ZaznaczWszystko()
+    {
+    todoItems.ForEach(t=>t.Stan=true);
+    }
+    private void OdznaczWszystko()
+    {
+    todoItems.ForEach(t=>t.Stan=false);
+    }
+}

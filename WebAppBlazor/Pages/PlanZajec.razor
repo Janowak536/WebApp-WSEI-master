@@ -1,0 +1,53 @@
+﻿@page "/planzajec"
+
+<h3>PlanZajec</h3>
+<table>
+    <thead>
+        <tr>
+            <th>
+                Data
+            </th>
+            <th>
+                Nazwa
+            </th>
+            <th>
+                Uczestnicy
+            </th>
+            <th>
+                Zapisy
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var konkretneZajecia in planZajec)
+        {
+            <ZajeciaComponent zajecia="konkretneZajecia"/>
+        }
+
+    </tbody>
+</table>
+<input placeholder="Data" @bind="podanaData"/>
+<input placeholder="Nazwa" @bind="podanaNazwa"/>
+<button @onclick="DodajZajecia">Dodaj zajecia do planu</button>
+
+
+@code {
+    private List<Zajecia> planZajec = new()
+    {
+        new Zajecia() { Nazwa = "Programowanie 1", Data = DateTime.Now.AddDays(18), UczestnicyMax = 15 },
+        new Zajecia() { Nazwa = "Matematyka 1", Data = DateTime.Now.AddDays(18), UczestnicyMax = 20 },
+        new Zajecia() { Nazwa = "Excel 1", Data = DateTime.Now.AddDays(18), UczestnicyMax = 5 },
+        new Zajecia() { Nazwa = "Bazy danych 1", Data = DateTime.Now.AddDays(18), UczestnicyMax = 3 }
+    };
+
+    private string podanaData = "";
+    private string podanaNazwa = "";
+
+    private void DodajZajecia()
+    {
+        if(DateTime.TryParse(podanaData, out DateTime data))
+        {
+            planZajec.Add(new Zajecia() { Nazwa = podanaNazwa, Data = data });
+        }
+    }
+}
